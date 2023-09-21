@@ -1,6 +1,6 @@
 module github.com/kudoas/todos-by-grpc
 
-go 1.20
+go 1.20.5
 
 require (
 	connectrpc.com/connect v1.11.1

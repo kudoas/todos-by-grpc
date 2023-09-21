@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package todo.v1;
+
+option go_package = "github.com/kudoas/todos-by-grpc/gen/todo/v1;todov1";
+
+message CreateTaskRequest {
+  string title = 1;
+  string content = 2; 
+}
+
+message CreateTaskResponse {
+  int32 id = 1;
+  string title = 2;
+  string content = 3; 
+}
+
+service TaskService {
+  rpc CreateTask(CreateTaskRequest) returns (CreateTaskResponse) {}
+}

@@ -4,15 +4,23 @@ package todo.v1;
 
 option go_package = "github.com/kudoas/todos-by-grpc/gen/todo/v1;todov1";
 
+enum Status {
+  STATUS_TODO_UNSPECIFIED = 0;
+  STATUS_DOING = 1;
+  STATUS_DONE = 2;
+}
+
 message CreateTaskRequest {
   string title = 1;
-  string content = 2; 
+  string content = 2;
+  optional Status enmu = 3;
 }
 
 message CreateTaskResponse {
   string id = 1;
   string title = 2;
   string content = 3; 
+  optional Status enmu = 4;
 }
 
 service TaskService {

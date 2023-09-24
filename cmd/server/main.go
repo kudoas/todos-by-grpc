@@ -20,7 +20,7 @@ type TaskServer struct {
 }
 
 type Task struct {
-	Id      int32
+	Id      string
 	Title   string
 	Content string
 }
@@ -32,7 +32,7 @@ func (s *TaskServer) CreateTask(
 	log.Println("Request headers: ", req.Header())
 
 	task := &Task{
-		Id:      1,
+		Id:      "1",
 		Title:   req.Msg.Title,
 		Content: req.Msg.Content,
 	}

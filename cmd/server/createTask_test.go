@@ -20,14 +20,13 @@ func TestCreateTask(t *testing.T) {
 
 	resTask := &connect.Response[todov1.CreateTaskResponse]{
 		Msg: &todov1.CreateTaskResponse{
-			Id: 1,
+			Id:      "1",
 			Title:   "sample title",
 			Content: "sample task",
 		},
-		
 	}
-	actual, err := taskServer.CreateTask(context.TODO(),reqTask)
+	actual, err := taskServer.CreateTask(context.TODO(), reqTask)
 	expected := resTask
-	assert.Equal(t,actual.Msg,expected.Msg)
-	assert.Equal(t,err,nil)
+	assert.Equal(t, actual.Msg, expected.Msg)
+	assert.Equal(t, err, nil)
 }

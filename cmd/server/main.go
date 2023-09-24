@@ -34,6 +34,9 @@ func (s *TaskServer) CreateTask(
 	log.Println("Request headers: ", req.Header())
 
 	uuid, _ := uuid.NewRandom()
+	if task, _ := s.store.Load(uuid); task != nil {
+		return nil, connect.NewError(connect.CodeAlreadyExists, fmt.Errorf("Task.Id %s already exists", uuid.String()))
+	}
 	task := &Task{
 		Id:      uuid.String(),
 		Title:   req.Msg.Title,
@@ -46,9 +49,9 @@ func (s *TaskServer) CreateTask(
 		Title:   task.Title,
 		Content: task.Content,
 	})
-	res.Header().Set("Greet-Version", "v1")
+	res.Header().Set("Todo-Version", "v1")
 	stored, _ := s.store.Load(task.Id)
-	fmt.Println("stored", stored)
+	log.Println("stored", stored)
 
 	return res, nil
 }

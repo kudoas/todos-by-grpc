@@ -4,34 +4,37 @@ package todo.v1;
 
 option go_package = "github.com/kudoas/todos-by-grpc/gen/todo/v1;todov1";
 
-enum Status {
-  STATUS_TODO_UNSPECIFIED = 0;
-  STATUS_DOING = 1;
-  STATUS_DONE = 2;
-}
-
-message CreateTaskRequest {
-  string title = 1;
-  string content = 2;
-  optional Status status = 3;
-}
-
-message CreateTaskResponse {
+message Task {
   string id = 1;
   string title = 2;
-  string content = 3; 
-  optional Status status = 4;
+  string content = 3;
+  Status status = 4;
+  enum Status {
+    STATUS_TODO_UNSPECIFIED = 0;
+    STATUS_DOING = 1;
+    STATUS_DONE = 2;
+  }
 }
 
-message DeleteTaskRequest {
+message CreateRequest {
+  string title = 1;
+  string content = 2;
+  optional Task.Status status = 3;
+}
+
+message CreateResponse {
+  Task task = 1;
+}
+
+message DeleteRequest {
   string id = 1;
 }
 
-message DeleteTaskResponse {
+message DeleteResponse {
   string id = 1;
 }
 
 service TaskService {
-  rpc CreateTask(CreateTaskRequest) returns (CreateTaskResponse) {}
-  rpc DeleteTask(DeleteTaskRequest) returns (DeleteTaskResponse) {}
+  rpc Create(CreateRequest) returns (CreateResponse) {}
+  rpc Delete(DeleteRequest) returns (DeleteResponse) {}
 }

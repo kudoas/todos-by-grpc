@@ -33,16 +33,16 @@ const (
 // reflection-formatted method names, remove the leading slash and convert the remaining slash to a
 // period.
 const (
-	// TaskServiceCreateTaskProcedure is the fully-qualified name of the TaskService's CreateTask RPC.
-	TaskServiceCreateTaskProcedure = "/todo.v1.TaskService/CreateTask"
-	// TaskServiceDeleteTaskProcedure is the fully-qualified name of the TaskService's DeleteTask RPC.
-	TaskServiceDeleteTaskProcedure = "/todo.v1.TaskService/DeleteTask"
+	// TaskServiceCreateProcedure is the fully-qualified name of the TaskService's Create RPC.
+	TaskServiceCreateProcedure = "/todo.v1.TaskService/Create"
+	// TaskServiceDeleteProcedure is the fully-qualified name of the TaskService's Delete RPC.
+	TaskServiceDeleteProcedure = "/todo.v1.TaskService/Delete"
 )
 
 // TaskServiceClient is a client for the todo.v1.TaskService service.
 type TaskServiceClient interface {
-	CreateTask(context.Context, *connect.Request[v1.CreateTaskRequest]) (*connect.Response[v1.CreateTaskResponse], error)
-	DeleteTask(context.Context, *connect.Request[v1.DeleteTaskRequest]) (*connect.Response[v1.DeleteTaskResponse], error)
+	Create(context.Context, *connect.Request[v1.CreateRequest]) (*connect.Response[v1.CreateResponse], error)
+	Delete(context.Context, *connect.Request[v1.DeleteRequest]) (*connect.Response[v1.DeleteResponse], error)
 }
 
 // NewTaskServiceClient constructs a client for the todo.v1.TaskService service. By default, it uses
@@ -55,14 +55,14 @@ type TaskServiceClient interface {
 func NewTaskServiceClient(httpClient connect.HTTPClient, baseURL string, opts ...connect.ClientOption) TaskServiceClient {
 	baseURL = strings.TrimRight(baseURL, "/")
 	return &taskServiceClient{
-		createTask: connect.NewClient[v1.CreateTaskRequest, v1.CreateTaskResponse](
+		create: connect.NewClient[v1.CreateRequest, v1.CreateResponse](
 			httpClient,
-			baseURL+TaskServiceCreateTaskProcedure,
+			baseURL+TaskServiceCreateProcedure,
 			opts...,
 		),
-		deleteTask: connect.NewClient[v1.DeleteTaskRequest, v1.DeleteTaskResponse](
+		delete: connect.NewClient[v1.DeleteRequest, v1.DeleteResponse](
 			httpClient,
-			baseURL+TaskServiceDeleteTaskProcedure,
+			baseURL+TaskServiceDeleteProcedure,
 			opts...,
 		),
 	}
@@ -70,24 +70,24 @@ func NewTaskServiceClient(httpClient connect.HTTPClient, baseURL string, opts ..
 
 // taskServiceClient implements TaskServiceClient.
 type taskServiceClient struct {
-	createTask *connect.Client[v1.CreateTaskRequest, v1.CreateTaskResponse]
-	deleteTask *connect.Client[v1.DeleteTaskRequest, v1.DeleteTaskResponse]
+	create *connect.Client[v1.CreateRequest, v1.CreateResponse]
+	delete *connect.Client[v1.DeleteRequest, v1.DeleteResponse]
 }
 
-// CreateTask calls todo.v1.TaskService.CreateTask.
-func (c *taskServiceClient) CreateTask(ctx context.Context, req *connect.Request[v1.CreateTaskRequest]) (*connect.Response[v1.CreateTaskResponse], error) {
-	return c.createTask.CallUnary(ctx, req)
+// Create calls todo.v1.TaskService.Create.
+func (c *taskServiceClient) Create(ctx context.Context, req *connect.Request[v1.CreateRequest]) (*connect.Response[v1.CreateResponse], error) {
+	return c.create.CallUnary(ctx, req)
 }
 
-// DeleteTask calls todo.v1.TaskService.DeleteTask.
-func (c *taskServiceClient) DeleteTask(ctx context.Context, req *connect.Request[v1.DeleteTaskRequest]) (*connect.Response[v1.DeleteTaskResponse], error) {
-	return c.deleteTask.CallUnary(ctx, req)
+// Delete calls todo.v1.TaskService.Delete.
+func (c *taskServiceClient) Delete(ctx context.Context, req *connect.Request[v1.DeleteRequest]) (*connect.Response[v1.DeleteResponse], error) {
+	return c.delete.CallUnary(ctx, req)
 }
 
 // TaskServiceHandler is an implementation of the todo.v1.TaskService service.
 type TaskServiceHandler interface {
-	CreateTask(context.Context, *connect.Request[v1.CreateTaskRequest]) (*connect.Response[v1.CreateTaskResponse], error)
-	DeleteTask(context.Context, *connect.Request[v1.DeleteTaskRequest]) (*connect.Response[v1.DeleteTaskResponse], error)
+	Create(context.Context, *connect.Request[v1.CreateRequest]) (*connect.Response[v1.CreateResponse], error)
+	Delete(context.Context, *connect.Request[v1.DeleteRequest]) (*connect.Response[v1.DeleteResponse], error)
 }
 
 // NewTaskServiceHandler builds an HTTP handler from the service implementation. It returns the path
@@ -96,22 +96,22 @@ type TaskServiceHandler interface {
 // By default, handlers support the Connect, gRPC, and gRPC-Web protocols with the binary Protobuf
 // and JSON codecs. They also support gzip compression.
 func NewTaskServiceHandler(svc TaskServiceHandler, opts ...connect.HandlerOption) (string, http.Handler) {
-	taskServiceCreateTaskHandler := connect.NewUnaryHandler(
-		TaskServiceCreateTaskProcedure,
-		svc.CreateTask,
+	taskServiceCreateHandler := connect.NewUnaryHandler(
+		TaskServiceCreateProcedure,
+		svc.Create,
 		opts...,
 	)
-	taskServiceDeleteTaskHandler := connect.NewUnaryHandler(
-		TaskServiceDeleteTaskProcedure,
-		svc.DeleteTask,
+	taskServiceDeleteHandler := connect.NewUnaryHandler(
+		TaskServiceDeleteProcedure,
+		svc.Delete,
 		opts...,
 	)
 	return "/todo.v1.TaskService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
-		case TaskServiceCreateTaskProcedure:
-			taskServiceCreateTaskHandler.ServeHTTP(w, r)
-		case TaskServiceDeleteTaskProcedure:
-			taskServiceDeleteTaskHandler.ServeHTTP(w, r)
+		case TaskServiceCreateProcedure:
+			taskServiceCreateHandler.ServeHTTP(w, r)
+		case TaskServiceDeleteProcedure:
+			taskServiceDeleteHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -121,10 +121,10 @@ func NewTaskServiceHandler(svc TaskServiceHandler, opts ...connect.HandlerOption
 // UnimplementedTaskServiceHandler returns CodeUnimplemented from all methods.
 type UnimplementedTaskServiceHandler struct{}
 
-func (UnimplementedTaskServiceHandler) CreateTask(context.Context, *connect.Request[v1.CreateTaskRequest]) (*connect.Response[v1.CreateTaskResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("todo.v1.TaskService.CreateTask is not implemented"))
+func (UnimplementedTaskServiceHandler) Create(context.Context, *connect.Request[v1.CreateRequest]) (*connect.Response[v1.CreateResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("todo.v1.TaskService.Create is not implemented"))
 }
 
-func (UnimplementedTaskServiceHandler) DeleteTask(context.Context, *connect.Request[v1.DeleteTaskRequest]) (*connect.Response[v1.DeleteTaskResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("todo.v1.TaskService.DeleteTask is not implemented"))
+func (UnimplementedTaskServiceHandler) Delete(context.Context, *connect.Request[v1.DeleteRequest]) (*connect.Response[v1.DeleteResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("todo.v1.TaskService.Delete is not implemented"))
 }

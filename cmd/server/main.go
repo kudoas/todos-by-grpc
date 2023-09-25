@@ -34,7 +34,7 @@ func (s *TaskServer) CreateTask(
 	log.Println("Request headers: ", req.Header())
 
 	uuid, _ := uuid.NewRandom()
-	if task, _ := s.store.Load(uuid); task != nil {
+	if _, ok := s.store.Load(uuid); !ok {
 		return nil, connect.NewError(connect.CodeAlreadyExists, fmt.Errorf("Task.Id %s already exists", uuid.String()))
 	}
 	task := &Task{
@@ -52,6 +52,21 @@ func (s *TaskServer) CreateTask(
 	res.Header().Set("Todo-Version", "v1")
 	stored, _ := s.store.Load(task.Id)
 	log.Println("stored", stored)
+
+	return res, nil
+}
+
+func (s *TaskServer) DeleteTask(
+	ctx context.Context,
+	req *connect.Request[todov1.DeleteTaskRequest],
+) (*connect.Response[todov1.DeleteTaskResponse], error) {
+	log.Println("Request headers: ", req.Header())
+	if _, ok := s.store.Load(req.Msg.Id); !ok {
+		return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("Task.Id %s not found", req.Msg.Id))
+	}
+	s.store.Delete(req.Msg.Id)
+	res := connect.NewResponse(&todov1.DeleteTaskResponse{})
+	res.Header().Set("Todo-Version", "v1")
 
 	return res, nil
 }

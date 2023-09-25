@@ -32,12 +32,12 @@ func TestDeleteTask(t *testing.T) {
 		Content: "sample task",
 	})
 	for _, c := range cases {
-		request := &connect.Request[todov1.DeleteTaskRequest]{
-			Msg: &todov1.DeleteTaskRequest{
+		request := &connect.Request[todov1.DeleteRequest]{
+			Msg: &todov1.DeleteRequest{
 				Id: c.id,
 			},
 		}
-		response, err := taskServer.DeleteTask(context.TODO(), request)
+		response, err := taskServer.Delete(context.TODO(), request)
 		if c.isError && err == nil {
 			t.Error("error is expected, but nil")
 		}

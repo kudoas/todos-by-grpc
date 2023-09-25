@@ -24,30 +24,28 @@ type Task struct {
 	Id      string
 	Title   string
 	Content string
-	Status  todov1.Status
+	Status  todov1.Task_Status
 }
 
-func (s *TaskServer) CreateTask(
+func (s *TaskServer) Create(
 	ctx context.Context,
-	req *connect.Request[todov1.CreateTaskRequest],
-) (*connect.Response[todov1.CreateTaskResponse], error) {
+	req *connect.Request[todov1.CreateRequest],
+) (*connect.Response[todov1.CreateResponse], error) {
 	log.Println("Request headers: ", req.Header())
 
 	uuid, _ := uuid.NewRandom()
-	if _, ok := s.store.Load(uuid); !ok {
+	if _, ok := s.store.Load(uuid); ok {
 		return nil, connect.NewError(connect.CodeAlreadyExists, fmt.Errorf("Task.Id %s already exists", uuid.String()))
 	}
-	task := &Task{
+	task := &todov1.Task{
 		Id:      uuid.String(),
 		Title:   req.Msg.Title,
 		Content: req.Msg.Content,
-		Status:  todov1.Status_STATUS_DOING,
+		Status:  todov1.Task_STATUS_TODO_UNSPECIFIED,
 	}
 	s.store.Store(task.Id, task)
-	res := connect.NewResponse(&todov1.CreateTaskResponse{
-		Id:      task.Id,
-		Title:   task.Title,
-		Content: task.Content,
+	res := connect.NewResponse(&todov1.CreateResponse{
+		Task: task,
 	})
 	res.Header().Set("Todo-Version", "v1")
 	stored, _ := s.store.Load(task.Id)
@@ -56,16 +54,16 @@ func (s *TaskServer) CreateTask(
 	return res, nil
 }
 
-func (s *TaskServer) DeleteTask(
+func (s *TaskServer) Delete(
 	ctx context.Context,
-	req *connect.Request[todov1.DeleteTaskRequest],
-) (*connect.Response[todov1.DeleteTaskResponse], error) {
+	req *connect.Request[todov1.DeleteRequest],
+) (*connect.Response[todov1.DeleteResponse], error) {
 	log.Println("Request headers: ", req.Header())
 	if _, ok := s.store.Load(req.Msg.Id); !ok {
 		return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("Task.Id %s not found", req.Msg.Id))
 	}
 	s.store.Delete(req.Msg.Id)
-	res := connect.NewResponse(&todov1.DeleteTaskResponse{})
+	res := connect.NewResponse(&todov1.DeleteResponse{})
 	res.Header().Set("Todo-Version", "v1")
 
 	return res, nil

@@ -33,6 +33,8 @@ const (
 // reflection-formatted method names, remove the leading slash and convert the remaining slash to a
 // period.
 const (
+	// TaskServiceReadProcedure is the fully-qualified name of the TaskService's Read RPC.
+	TaskServiceReadProcedure = "/todo.v1.TaskService/Read"
 	// TaskServiceCreateProcedure is the fully-qualified name of the TaskService's Create RPC.
 	TaskServiceCreateProcedure = "/todo.v1.TaskService/Create"
 	// TaskServiceDeleteProcedure is the fully-qualified name of the TaskService's Delete RPC.
@@ -41,6 +43,7 @@ const (
 
 // TaskServiceClient is a client for the todo.v1.TaskService service.
 type TaskServiceClient interface {
+	Read(context.Context, *connect.Request[v1.ReadRequest]) (*connect.Response[v1.ReadResponse], error)
 	Create(context.Context, *connect.Request[v1.CreateRequest]) (*connect.Response[v1.CreateResponse], error)
 	Delete(context.Context, *connect.Request[v1.DeleteRequest]) (*connect.Response[v1.DeleteResponse], error)
 }
@@ -55,6 +58,11 @@ type TaskServiceClient interface {
 func NewTaskServiceClient(httpClient connect.HTTPClient, baseURL string, opts ...connect.ClientOption) TaskServiceClient {
 	baseURL = strings.TrimRight(baseURL, "/")
 	return &taskServiceClient{
+		read: connect.NewClient[v1.ReadRequest, v1.ReadResponse](
+			httpClient,
+			baseURL+TaskServiceReadProcedure,
+			opts...,
+		),
 		create: connect.NewClient[v1.CreateRequest, v1.CreateResponse](
 			httpClient,
 			baseURL+TaskServiceCreateProcedure,
@@ -70,8 +78,14 @@ func NewTaskServiceClient(httpClient connect.HTTPClient, baseURL string, opts ..
 
 // taskServiceClient implements TaskServiceClient.
 type taskServiceClient struct {
+	read   *connect.Client[v1.ReadRequest, v1.ReadResponse]
 	create *connect.Client[v1.CreateRequest, v1.CreateResponse]
 	delete *connect.Client[v1.DeleteRequest, v1.DeleteResponse]
+}
+
+// Read calls todo.v1.TaskService.Read.
+func (c *taskServiceClient) Read(ctx context.Context, req *connect.Request[v1.ReadRequest]) (*connect.Response[v1.ReadResponse], error) {
+	return c.read.CallUnary(ctx, req)
 }
 
 // Create calls todo.v1.TaskService.Create.
@@ -86,6 +100,7 @@ func (c *taskServiceClient) Delete(ctx context.Context, req *connect.Request[v1.
 
 // TaskServiceHandler is an implementation of the todo.v1.TaskService service.
 type TaskServiceHandler interface {
+	Read(context.Context, *connect.Request[v1.ReadRequest]) (*connect.Response[v1.ReadResponse], error)
 	Create(context.Context, *connect.Request[v1.CreateRequest]) (*connect.Response[v1.CreateResponse], error)
 	Delete(context.Context, *connect.Request[v1.DeleteRequest]) (*connect.Response[v1.DeleteResponse], error)
 }
@@ -96,6 +111,11 @@ type TaskServiceHandler interface {
 // By default, handlers support the Connect, gRPC, and gRPC-Web protocols with the binary Protobuf
 // and JSON codecs. They also support gzip compression.
 func NewTaskServiceHandler(svc TaskServiceHandler, opts ...connect.HandlerOption) (string, http.Handler) {
+	taskServiceReadHandler := connect.NewUnaryHandler(
+		TaskServiceReadProcedure,
+		svc.Read,
+		opts...,
+	)
 	taskServiceCreateHandler := connect.NewUnaryHandler(
 		TaskServiceCreateProcedure,
 		svc.Create,
@@ -108,6 +128,8 @@ func NewTaskServiceHandler(svc TaskServiceHandler, opts ...connect.HandlerOption
 	)
 	return "/todo.v1.TaskService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
+		case TaskServiceReadProcedure:
+			taskServiceReadHandler.ServeHTTP(w, r)
 		case TaskServiceCreateProcedure:
 			taskServiceCreateHandler.ServeHTTP(w, r)
 		case TaskServiceDeleteProcedure:
@@ -120,6 +142,10 @@ func NewTaskServiceHandler(svc TaskServiceHandler, opts ...connect.HandlerOption
 
 // UnimplementedTaskServiceHandler returns CodeUnimplemented from all methods.
 type UnimplementedTaskServiceHandler struct{}
+
+func (UnimplementedTaskServiceHandler) Read(context.Context, *connect.Request[v1.ReadRequest]) (*connect.Response[v1.ReadResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("todo.v1.TaskService.Read is not implemented"))
+}
 
 func (UnimplementedTaskServiceHandler) Create(context.Context, *connect.Request[v1.CreateRequest]) (*connect.Response[v1.CreateResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("todo.v1.TaskService.Create is not implemented"))
